@@ -28,11 +28,30 @@ if "qa" not in st.session_state or st.session_state.get("loaded_pdf") != selecte
             create_vector_store(pdf_path, vector_path)
         st.session_state.qa = load_qa(vector_path)
         st.session_state.loaded_pdf = selected_pdf
+        st.session_state.history = []  # inicializa o histórico para novo PDF
 
 # Caixa de pergunta
 question = st.text_input("Digite sua pergunta sobre o edital:")
 
+# Consulta e grava histórico
 if question:
     with st.spinner("Consultando..."):
         response = st.session_state.qa.run(question)
+        st.session_state.history.append((question, response))
         st.write(response)
+
+# Histórico de perguntas
+st.markdown("---")
+st.subheader("🕘 Histórico da sessão")
+
+if st.session_state.history:
+    for idx, (q, r) in enumerate(reversed(st.session_state.history), 1):
+        with st.expander(f"{idx}. {q}"):
+            st.markdown(r)
+else:
+    st.info("Nenhuma pergunta registrada ainda.")
+
+# Botão para limpar histórico
+if st.button("🧹 Limpar histórico"):
+    st.session_state.history = []
+    st.rerun()
