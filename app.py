@@ -1,9 +1,21 @@
 import streamlit as st
 import os
-from rag_pipeline import create_vector_store, load_qa
+from rag_pipeline import create_vector_store
+from langchain.vectorstores import FAISS
+from langchain.chains import RetrievalQA
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.chat_models import ChatOpenAI
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain.embeddings.openai import OpenAIEmbeddings
 from fpdf import FPDF
+from dotenv import load_dotenv
+
+load_dotenv()
 
 st.title("🤖 Leitor de Editais")
+
+# 🧠 Seletor de modelo
+model_choice = st.selectbox("Escolha o modelo:", ["Gemini", "OpenAI"], key="model_choice")
 
 # 📤 Upload de novo edital
 with st.expander("📥 Fazer upload de um novo edital (.pdf)"):
@@ -22,17 +34,35 @@ selected_pdf = st.selectbox("Selecione o edital:", pdf_list)
 pdf_path = f"docs/{selected_pdf}"
 vector_path = f"data/{selected_pdf.replace('.pdf', '')}"
 
-# Carregando modelo com base no PDF escolhido
-if "qa" not in st.session_state or st.session_state.get("loaded_pdf") != selected_pdf:
+# 🔄 Função para carregar o modelo LLM + embeddings
+def load_qa_model(model_choice: str, vector_path: str):
+    if model_choice == "OpenAI":
+        embeddings = OpenAIEmbeddings()
+        llm = ChatOpenAI(temperature=0.2)
+    else:  # Gemini
+        embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+        llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro-latest", temperature=0.2)
+
+    vectorstore = FAISS.load_local(
+        vector_path,
+        embeddings,
+        allow_dangerous_deserialization=True
+    )
+
+    return RetrievalQA.from_chain_type(llm=llm, retriever=vectorstore.as_retriever())
+
+# Carrega modelo + vetor se necessário
+model_key = f"{selected_pdf}_{model_choice}"
+if "qa" not in st.session_state or st.session_state.get("qa_key") != model_key:
     with st.spinner("Carregando modelo..."):
         if not os.path.exists(os.path.join(vector_path, "index.faiss")):
             create_vector_store(pdf_path, vector_path)
-        st.session_state.qa = load_qa(vector_path)
-        st.session_state.loaded_pdf = selected_pdf
+        st.session_state.qa = load_qa_model(model_choice, vector_path)
+        st.session_state.qa_key = model_key
         st.session_state.history = []
 
+# Campo de pergunta e botão separado
 question = st.text_input("Digite sua pergunta sobre o edital:", key="question_input", placeholder="Digite sua pergunta...")
-
 ask_clicked = st.button("🔍 Consultar")
 
 if ask_clicked and question.strip():
@@ -55,9 +85,10 @@ else:
 # Botão para limpar histórico
 if st.button("🧹 Limpar histórico", disabled=not st.session_state.history):
     st.session_state.history = []
+    st.session_state.question_input = ""
     st.rerun()
 
-# Função para exportar histórico em PDF
+# Exportação para PDF
 def export_history_to_pdf(history):
     pdf = FPDF()
     pdf.add_page()
@@ -75,7 +106,6 @@ def export_history_to_pdf(history):
     pdf.output(output_path)
     return output_path
 
-# Botão para exportar PDF
 if st.session_state.history:
     pdf_path = export_history_to_pdf(st.session_state.history)
     with open(pdf_path, "rb") as pdf_file:
