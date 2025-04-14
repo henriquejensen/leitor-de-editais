@@ -35,7 +35,7 @@ def load_qa(persist_path: str):
     llm = ChatGoogleGenerativeAI(
         model="gemini-1.5-pro-latest",
         temperature=0.2,
-        default_system_prompt="Se a perguntar for em português, responda em português."
+        default_system_prompt="Responda sempre em português, mesmo que a pergunta esteja em outro idioma."
     )
 
     qa = RetrievalQA.from_chain_type(llm=llm, retriever=retriever)
