@@ -3,7 +3,6 @@ import os
 from rag_pipeline import create_vector_store, load_qa
 from fpdf import FPDF
 
-
 st.title("🤖 Leitor de Editais")
 
 # 📤 Upload de novo edital
@@ -30,13 +29,13 @@ if "qa" not in st.session_state or st.session_state.get("loaded_pdf") != selecte
             create_vector_store(pdf_path, vector_path)
         st.session_state.qa = load_qa(vector_path)
         st.session_state.loaded_pdf = selected_pdf
-        st.session_state.history = []  # inicializa o histórico para novo PDF
+        st.session_state.history = []
 
-# Caixa de pergunta
-question = st.text_input("Digite sua pergunta sobre o edital:")
+question = st.text_input("Digite sua pergunta sobre o edital:", key="question_input", placeholder="Digite sua pergunta...")
 
-# Consulta e grava histórico
-if question:
+ask_clicked = st.button("🔍 Consultar")
+
+if ask_clicked and question.strip():
     with st.spinner("Consultando..."):
         response = st.session_state.qa.run(question)
         st.session_state.history.append((question, response))
@@ -54,15 +53,15 @@ else:
     st.info("Nenhuma pergunta registrada ainda.")
 
 # Botão para limpar histórico
-if st.button("🧹 Limpar histórico"):
+if st.button("🧹 Limpar histórico", disabled=not st.session_state.history):
     st.session_state.history = []
     st.rerun()
 
+# Função para exportar histórico em PDF
 def export_history_to_pdf(history):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-
     pdf.cell(0, 10, txt="Historico - Leitor de Editais", ln=True)
 
     for idx, (q, r) in enumerate(history, 1):
@@ -76,14 +75,13 @@ def export_history_to_pdf(history):
     pdf.output(output_path)
     return output_path
 
-
-# Botão para exportar histórico para PDF
+# Botão para exportar PDF
 if st.session_state.history:
-    if st.download_button(
-        label="💾 Exportar histórico para PDF",
-        file_name="historico_sessao.pdf",
-        mime="application/pdf",
-        data=open(export_history_to_pdf(st.session_state.history), "rb").read()
-    ):
-        st.success("PDF exportado com sucesso!")
-
+    pdf_path = export_history_to_pdf(st.session_state.history)
+    with open(pdf_path, "rb") as pdf_file:
+        st.download_button(
+            label="💾 Exportar histórico para PDF",
+            file_name="historico_sessao.pdf",
+            mime="application/pdf",
+            data=pdf_file.read()
+        )
