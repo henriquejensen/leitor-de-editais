@@ -1,6 +1,8 @@
 import streamlit as st
-from rag_pipeline import create_vector_store, load_qa
 import os
+from rag_pipeline import create_vector_store, load_qa
+from fpdf import FPDF
+
 
 st.title("🤖 Leitor de Editais")
 
@@ -55,3 +57,33 @@ else:
 if st.button("🧹 Limpar histórico"):
     st.session_state.history = []
     st.rerun()
+
+def export_history_to_pdf(history):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    pdf.cell(0, 10, txt="Historico - Leitor de Editais", ln=True)
+
+    for idx, (q, r) in enumerate(history, 1):
+        pdf.ln(10)
+        pdf.set_font("Arial", "B", size=12)
+        pdf.multi_cell(0, 10, f"{idx}. Pergunta: {q}")
+        pdf.set_font("Arial", "", size=12)
+        pdf.multi_cell(0, 10, f"Resposta: {r}")
+
+    output_path = "data/historico_sessao.pdf"
+    pdf.output(output_path)
+    return output_path
+
+
+# Botão para exportar histórico para PDF
+if st.session_state.history:
+    if st.download_button(
+        label="💾 Exportar histórico para PDF",
+        file_name="historico_sessao.pdf",
+        mime="application/pdf",
+        data=open(export_history_to_pdf(st.session_state.history), "rb").read()
+    ):
+        st.success("PDF exportado com sucesso!")
+
