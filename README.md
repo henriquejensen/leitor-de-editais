@@ -86,7 +86,6 @@ python run.py
 ## Limites da API gratuita Gemini (MakerSuite)
 
 - Recurso	Limite estimado:    Requisições por dia	~60–150
-
 - Tokens por requisição:      ~30.000
 - Custo:                      Gratuito
 - Autenticação necessária:    Apenas a chave da MakerSuite
