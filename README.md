@@ -1,6 +1,6 @@
-# 🤖 Chat do Edital – Mestrado USP
+# 🤖 Chat dos Editais
 
-Este é um projeto de IA que utiliza **RAG (Retrieval-Augmented Generation)** para responder perguntas sobre o edital do **Mestrado da USP** com base em arquivos PDF.
+Este é um projeto de IA que utiliza **RAG (Retrieval-Augmented Generation)** para responder perguntas sobre o editais em arquivos PDF. Inicialmente feito para ler o edital do **Mestrado da USP**, agora com suporte para ler qualquer edital PDF.
 
 Ele usa o modelo **Gemini 1.5 Pro (gratuito via MakerSuite)** para processar perguntas e gerar respostas inteligentes, tudo por meio de uma interface simples feita com **Streamlit**.
 
@@ -42,8 +42,8 @@ GOOGLE_API_KEY=AIza...sua-chave-aqui
 ### Clone o repositório:
 
 ```bash
-git clone https://github.com/seu-usuario/mestrado-chat.git
-cd mestrado-chat
+git clone https://github.com/seu-usuario/leitor-de-editais.git
+cd leitor-de-editais
 ```
 
 ### Crie e ative o ambiente virtual:
@@ -57,12 +57,6 @@ source .venv/bin/activate
 
 ```bash
 pip install -r requirements.txt
-```
-
-Se ainda não criou o requirements.txt, você pode gerar assim:
-
-```bash
-pip freeze > requirements.txt
 ```
 
 ## Executando o projeto
