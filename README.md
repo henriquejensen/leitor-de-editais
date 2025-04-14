@@ -18,6 +18,12 @@ Você pode escolher entre os modelos **Gemini 1.5 Pro (gratuito via MakerSuite)*
 
 ---
 
+## Imagens do projeto rodando
+
+![Searching](./assets/search.png "Tela principal da busca")
+![Complex Searching](./assets/complex-search.png "Tela principal da busca")
+![PDF generated](./assets/pdf-generated.png "PDF gerado com as perguntas e respostas")
+
 ## ⚙️ Tecnologias usadas
 
 - [LangChain](https://www.langchain.com/)
